@@ -1,0 +1,219 @@
+<! html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roadmap Project Database</title>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#171a23; --panel2:#1e2230; --border:#2a2f3f;
+    --text:#e9ebf2; --muted:#9aa0b4; --track:#2a2f3f;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f4f5fa; --panel:#ffffff; --panel2:#f0f1f8; --border:#e1e3ee;
+      --text:#1c1f2b; --muted:#666c82; --track:#e5e7f2;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    display:flex;justify-content:center;padding:32px 16px 60px;}
+  .wrap{width:100%;max-width:640px;}
+  h1{font-size:1.4rem;margin:0 0 4px;}
+  p.sub{color:var(--muted);margin:0 0 18px;font-size:.9rem;}
+
+  .progress-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;
+    padding:16px 18px;margin-bottom:22px;}
+  .progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+  .progress-top .count{font-weight:700;font-size:1.05rem;}
+  .progress-top .pct{font-weight:700;}
+  .bar-track{height:10px;background:var(--track);border-radius:99px;overflow:hidden;}
+  .bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#6c8cff,#3ddc97);
+    transition:width .35s ease;border-radius:99px;}
+
+  .level-section{margin-bottom:26px;}
+  .level-head{display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:10px;padding:0 2px;}
+  .level-title{font-weight:700;font-size:1.02rem;display:flex;align-items:center;gap:8px;}
+  .level-mini{font-size:.8rem;color:var(--muted);}
+  .mini-track{width:70px;height:6px;background:var(--track);border-radius:99px;overflow:hidden;display:inline-block;margin-left:8px;vertical-align:middle;}
+  .mini-fill{height:100%;border-radius:99px;}
+
+  .row{display:flex;align-items:flex-start;gap:12px;background:var(--panel);
+    border:1px solid var(--border);border-radius:14px;padding:13px 15px;margin-top:10px;
+    cursor:pointer;transition:background .15s ease,border-color .15s ease,opacity .15s ease;}
+  .row:hover{border-color:var(--lvl-color,#6c8cff);}
+  .row.done{background:var(--panel2);opacity:.72;}
+
+  .checkbox{flex:0 0 auto;width:23px;height:23px;border-radius:7px;border:2px solid var(--border);
+    display:flex;align-items:center;justify-content:center;margin-top:1px;
+    transition:background .15s ease,border-color .15s ease;}
+  .row.done .checkbox{background:var(--lvl-color,#3ddc97);border-color:var(--lvl-color,#3ddc97);}
+  .checkbox svg{width:13px;height:13px;opacity:0;transform:scale(.6);transition:opacity .15s ease,transform .15s ease;}
+  .row.done .checkbox svg{opacity:1;transform:scale(1);}
+
+  .label{flex:1;}
+  .num{color:var(--lvl-color,#6c8cff);font-weight:700;font-size:.76rem;letter-spacing:.02em;}
+  .title{font-size:.98rem;margin-top:2px;}
+  .row.done .title{text-decoration:line-through;color:var(--muted);}
+
+  footer{margin-top:10px;display:flex;justify-content:center;}
+  .reset-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
+    padding:9px 16px;border-radius:99px;font-size:.85rem;cursor:pointer;}
+  .reset-btn:hover{border-color:#e0556f;color:#e0556f;}
+
+  .done-banner{display:none;text-align:center;background:linear-gradient(90deg,#6c8cff,#3ddc97);
+    color:#0b0d13;font-weight:700;padding:12px;border-radius:14px;margin-bottom:20px;}
+  .done-banner.show{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📚 Roadmap Project Database</h1>
+    <p class="sub">Centang tiap project yang sudah kamu pelajari/kerjakan. Progress tersimpan otomatis di browser ini dan tidak akan hilang atau berubah sendiri.</p>
+  </header>
+
+  <div class="done-banner" id="doneBanner">🎉 Keren! Semua project sudah kamu selesaikan!</div>
+
+  <div class="progress-card">
+    <div class="progress-top">
+      <span class="count"><span id="countDone">0</span>/<span id="countTotal">32</span> selesai</span>
+      <span class="pct" id="pct">0%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+  </div>
+
+  <div id="levels"></div>
+
+  <footer>
+    <button class="reset-btn" id="resetBtn">Reset semua progress</button>
+  </footer>
+</div>
+
+<script>
+const levels = [
+  { name: "🟢 Level 1 — Dasar", color: "#3ddc97", items: [
+    "Data Mahasiswa","To-Do List","Buku Kontak","Data Nilai","Data Karyawan",
+    "Data Produk","Stok Barang","Data Buku"
+  ]},
+  { name: "🟡 Level 2 — Relasi Database", color: "#f0c14b", items: [
+    "Sistem Perpustakaan","Sistem Absensi","Sistem KRS","Sistem Jadwal Kuliah",
+    "Sistem Data Dosen","Sistem Peminjaman Barang","Sistem Penjualan Sederhana"
+  ]},
+  { name: "🟠 Level 3 — PHP + MySQL", color: "#ff9a4d", items: [
+    "Login & Register","Sistem Pengaduan","Sistem Pendaftaran Event",
+    "Sistem Kas Organisasi","Sistem Inventaris Organisasi",
+    "Sistem Manajemen Anggota","Sistem Berita/Artikel"
+  ]},
+  { name: "🔴 Level 4 — Project Besar", color: "#ff5d6c", items: [
+    "Website Organisasi Kampus","Sistem Informasi Akademik","E-Commerce",
+    "Sistem Perpustakaan Online","Sistem Manajemen Keuangan",
+    "Sistem Manajemen Project","Sistem Rental Barang","Sistem Rumah Sakit",
+    "Sistem Booking/Pemesanan","Sistem Administrasi Kampus"
+  ]}
+];
+
+// build flat list with global numbering
+let counter = 0;
+levels.forEach(lvl => {
+  lvl.itemsFlat = lvl.items.map(title => ({ num: ++counter, title }));
+});
+const TOTAL = counter;
+
+const STORAGE_KEY = "project-db-roadmap-progress-v1";
+let state = {};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    state = raw ? JSON.parse(raw) : {};
+  }catch(e){ state = {}; }
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+const levelsEl = document.getElementById('levels');
+const barFill = document.getElementById('barFill');
+const pctEl = document.getElementById('pct');
+const countDoneEl = document.getElementById('countDone');
+const countTotalEl = document.getElementById('countTotal');
+const doneBanner = document.getElementById('doneBanner');
+
+function render(){
+  levelsEl.innerHTML = '';
+  levels.forEach(lvl => {
+    const doneInLvl = lvl.itemsFlat.reduce((a,it)=>a+(state[it.num]?1:0),0);
+    const totalLvl = lvl.itemsFlat.length;
+    const pctLvl = Math.round((doneInLvl/totalLvl)*100);
+
+    const section = document.createElement('div');
+    section.className = 'level-section';
+    section.style.setProperty('--lvl-color', lvl.color);
+
+    const head = document.createElement('div');
+    head.className = 'level-head';
+    head.innerHTML = `
+      <div class="level-title">${lvl.name}</div>
+      <div class="level-mini">${doneInLvl}/${totalLvl}
+        <span class="mini-track"><span class="mini-fill" style="width:${pctLvl}%;background:${lvl.color}"></span></span>
+      </div>`;
+    section.appendChild(head);
+
+    lvl.itemsFlat.forEach(it => {
+      const isDone = !!state[it.num];
+      const row = document.createElement('div');
+      row.className = 'row ' + (isDone ? 'done' : '');
+      row.style.setProperty('--lvl-color', lvl.color);
+      row.setAttribute('data-num', it.num);
+      row.innerHTML = `
+        <div class="checkbox">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6.5" stroke="#0b0d13" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="label">
+          <div class="num">PROJECT ${it.num}</div>
+          <div class="title">${it.title}</div>
+        </div>`;
+      row.addEventListener('click', () => {
+        state[it.num] = !state[it.num];
+        saveState();
+        render();
+      });
+      section.appendChild(row);
+    });
+
+    levelsEl.appendChild(section);
+  });
+
+  updateProgress();
+}
+
+function updateProgress(){
+  const done = Object.values(state).filter(Boolean).length;
+  const pct = Math.round((done/TOTAL)*100);
+  countDoneEl.textContent = done;
+  countTotalEl.textContent = TOTAL;
+  pctEl.textContent = pct + '%';
+  barFill.style.width = pct + '%';
+  doneBanner.classList.toggle('show', done === TOTAL);
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if(confirm('Yakin mau reset semua progress?')){
+    state = {};
+    saveState();
+    render();
+  }
+});
+
+loadState();
+render();
+</script>
+</body>
+</html>
